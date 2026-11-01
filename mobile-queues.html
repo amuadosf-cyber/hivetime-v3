@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="pt-PT">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="dark">
+<title>HiveTime — Mobile Queues</title>
+<style>
+:root{--bg:#0a101e;--panel:#141d30;--panel2:#1a2740;--border:#2a3854;--muted:#9badc8;--text:#ecf4ff;--blue:#78afff;--green:#5ee2b1;--amber:#ffcb70;--red:#f48f98}*{box-sizing:border-box}
+body{margin:0;background:radial-gradient(ellipse at 90% 5%,#173458 0,transparent 40%),var(--bg);color:var(--text);font:15px/1.5 system-ui,-apple-system,Segoe UI,sans-serif}
+main{width:min(1200px,94vw);margin:40px auto 80px}.eyebrow{font-size:12px;text-transform:uppercase;letter-spacing:2px;color:var(--blue);font-weight:800}
+h1{font-size:clamp(28px,5vw,46px);line-height:1.12;letter-spacing:-1px;margin:8px 0 10px}h2{font-size:19px;margin:0 0 14px}
+.muted{color:var(--muted)}.intro{max-width:820px;margin-bottom:26px}.toolbar{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap}
+a{color:#a8cbff}button,select,input{font:inherit;color:inherit}button{background:#223555;border:1px solid #354b72;padding:10px 15px;border-radius:11px;cursor:pointer;font-weight:650}button:hover{background:#2c436a}button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid var(--blue);outline-offset:2px}.primary{background:#518ff6;border:1px solid #74a6ff;color:#071527}.primary:hover{background:#86b5ff}
+.filters{display:flex;gap:9px;flex-wrap:wrap;margin:24px 0 22px}.filters button[aria-pressed=true]{background:#78afff;color:#071527;border-color:#78afff}
+.stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin:0 0 23px}.stat{border:1px solid var(--border);background:var(--panel);border-radius:15px;padding:17px}.number{font-size:28px;font-weight:800;line-height:1.1;margin:7px 0}.small{font-size:13px}
+.card{border:1px solid var(--border);background:var(--panel);border-radius:18px;padding:22px;margin:0 0 18px}.scroll{overflow:auto}.matrix{width:100%;border-spacing:0;border-collapse:collapse;min-width:600px;text-align:left}.matrix th{color:#9eb3d4;font-size:12px;letter-spacing:.7px;text-transform:uppercase;font-weight:750;padding:12px;border-bottom:1px solid var(--border)}.matrix td{padding:14px 12px;border-bottom:1px solid #27324a}.matrix tr:last-child td{border-bottom:0}.matrix td:not(:first-child){text-align:center}.matrix th:not(:first-child){text-align:center}
+.mode-name{font-weight:740}.mode-group{color:var(--muted);font-size:12px}.pill{border:1px solid #4b5d79;background:#202c41;border-radius:999px;padding:5px 9px;font-size:12px;display:inline-block;white-space:nowrap}.pill.good{color:var(--green);border-color:#287e64;background:#153a35}.pill.maybe{color:var(--amber);border-color:#8d6835;background:#44341e}.pill.old{color:#c6b9ff;border-color:#6755a4;background:#302d48}.pill.empty{color:#abbad1}.matrix button{background:none;padding:3px;border:0}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}.field{display:flex;flex-direction:column;gap:5px;min-width:0}.form-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin:15px 0}.field label{font-size:13px;color:#c4d6f0;font-weight:650}.field select,.field input{padding:12px;background:#0e182b;border:1px solid #3d506c;border-radius:10px;width:100%;max-width:100%}.actions{display:flex;gap:9px;flex-wrap:wrap}.notice{border-left:3px solid #78afff;padding:12px 14px;background:#1b2b43;border-radius:0 11px 11px 0;margin-top:16px}.info-list{margin:5px 0 0;padding-left:18px}.info-list li{margin:5px 0}footer{margin-top:24px;font-size:13px;color:var(--muted)}
+@media(max-width:760px){.grid,.stats{grid-template-columns:1fr}.card{padding:16px}.form-grid{grid-template-columns:1fr}main{margin-top:27px}}
+</style>
+</head>
+<body><main>
+<div class="eyebrow">HiveTime · The Hive Bedrock</div>
+<h1>📱 Mobile Queues</h1>
+<p class="muted intro">Em que região e modo é possível encontrar uma queue <strong>Touch</strong>? Compara Europa, América do Norte e Ásia. Este painel utiliza observações introduzidas pelos utilizadores; não apresenta contagens inventadas nem afirma ter acesso ao matchmaking interno do Hive.</p>
+<div class="toolbar"><h2>Estado das filas</h2><span id="updated" class="muted small" aria-live="polite">Sem observações guardadas</span></div>
+<div class="filters" role="group" aria-label="Filtrar modos">
+<button type="button" data-filter="all" aria-pressed="true">Todos</button>
+<button type="button" data-filter="SkyWars" aria-pressed="false">SkyWars</button>
+<button type="button" data-filter="BedWars" aria-pressed="false">BedWars</button>
+<button type="button" data-filter="Survival Games" aria-pressed="false">Survival Games</button>
+<button type="button" data-filter="Capture the Flag" aria-pressed="false">CTF</button>
+<button type="button" data-filter="The Bridge" aria-pressed="false">The Bridge</button>
+</div>
+<section class="stats" aria-label="Resumo">
+<div class="stat"><div class="muted small">Queues confirmadas recentemente</div><div class="number" id="confirmed">0</div><div class="muted small">Observação direta nos últimos 10 minutos</div></div>
+<div class="stat"><div class="muted small">Queues possivelmente Touch</div><div class="number" id="possible">0</div><div class="muted small">Contagem reportada ≥200, não verificada</div></div>
+<div class="stat"><div class="muted small">Sem dados recentes</div><div class="number" id="unknown">0</div><div class="muted small">Inclui observações antigas</div></div>
+</section>
+<section class="card"><h2>Comparar regiões</h2><div class="scroll"><table class="matrix"><thead><tr><th>Modo</th><th>🇪🇺 Europa</th><th>🇺🇸 América do Norte</th><th>🇯🇵 Ásia</th></tr></thead><tbody id="matrix"></tbody></table></div><p class="muted small">Clica numa célula para preencher ou atualizar uma observação dessa queue. O estado muda automaticamente quando os dados passam de 10 minutos.</p></section>
+<div class="grid"><section class="card" id="observation"><h2>Adicionar uma observação</h2><p class="muted small">Usa dados que viste dentro do jogo; não é necessário partilhar gamertags.</p>
+<form id="report">
+<div class="form-grid">
+<div class="field"><label for="region">Região</label><select id="region" required><option value="EU">🇪🇺 Europa</option><option value="NA">🇺🇸 América do Norte</option><option value="AS">🇯🇵 Ásia</option></select></div>
+<div class="field"><label for="mode">Modo de jogo</label><select id="mode" required></select></div>
+<div class="field"><label for="evidence">O que verificaste?</label><select id="evidence" required><option value="touch">Joguei numa queue exclusiva Touch</option><option value="population">Vi o número de jogadores deste modo</option><option value="unknown">Não consegui confirmar</option></select></div>
+<div class="field"><label for="count">Jogadores neste modo (se souberes)</label><input id="count" type="number" min="0" max="999999" step="1" inputmode="numeric" placeholder="Ex.: 240"></div>
+</div>
+<div class="actions"><button type="submit" class="primary">Guardar observação</button><button id="clear" type="button">Limpar dados locais</button></div>
+<div class="small muted" id="feedback" role="status" aria-live="polite" style="margin-top:10px"></div>
+</form></section>
+<section class="card"><h2>Como interpretar</h2><ul class="info-list">
+<li><span class="pill good">Touch confirmada</span> — alguém observou diretamente essa queue nos últimos 10 minutos (registo local, não validado pelo Hive).</li>
+<li><span class="pill maybe">Touch possível</span> — foi reportado um total de pelo menos 200 jogadores neste modo há menos de 10 minutos. <strong>Não garante</strong> que o matchmaking Touch esteja ativo.</li>
+<li><span class="pill old">Dados antigos</span> — a última observação tem mais de 10 minutos.</li>
+<li><span class="pill empty">Sem dados</span> — ainda não há observação desta região e modo.</li>
+</ul><div class="notice"><strong>Regras oficiais:</strong> o Hive separa jogadores Touch, consola e PC em SkyWars, BedWars, Survival Games, CTF e The Bridge quando a população do modo é suficiente. A disponibilidade é reavaliada a cada 10 minutos. Em parties, conta o tipo de entrada mais elevado; jogos podem usar matchmaking entre regiões.</div></section></div>
+<footer>Fontes: <a href="https://support.playhive.com/platform-based-matchmaking/" target="_blank" rel="noopener">Platform-based matchmaking</a> · <a href="https://support.playhive.com/cross-region-matchmaking/" target="_blank" rel="noopener">Cross-region matchmaking</a> · <a href="https://support.playhive.com/commands/" target="_blank" rel="noopener">Modos e comandos do Hive</a> · Observações guardadas apenas neste navegador, não sincronizadas entre utilizadores.</footer>
+</main>
+<script>
+(function(){
+"use strict";
+var games=[
+["SkyWars","Solo"],["SkyWars","Duos"],["SkyWars","Squads"],["SkyWars","Mega"],
+["BedWars","Solo"],["BedWars","Duos"],["BedWars","Squads"],["BedWars","Mega"],
+["Survival Games","Solo"],["Survival Games","Duos"],["Capture the Flag","Normal"],
+["The Bridge","Solo"],["The Bridge","Duos"]];
+var regions=["EU","NA","AS"],key="hivetime-mobile-queues-v1",filter="all",data={};
+function ref(g,m){return g+"|"+m}function code(r,g,m){return r+"|"+ref(g,m)}
+try{var saved=JSON.parse(localStorage.getItem(key)||"{}");if(saved&&typeof saved==="object"&&!Array.isArray(saved))data=saved;}catch(e){}
+function label(row){if(!row||typeof row.at!=="number")return {text:"Sem dados",cls:"empty",order:0};var age=Date.now()-row.at;if(age>600000||age< -60000)return{text:"Dados antigos",cls:"old",order:0};
+if(row.evidence==="touch")return {text:"Touch confirmada*",cls:"good",order:2};
+if(row.evidence==="population"&&Number.isFinite(row.count)&&row.count>=200)return{text:"Touch possível",cls:"maybe",order:1};
+return{text:"Sem confirmação",cls:"empty",order:0};}
+function safeStore(){try{localStorage.setItem(key,JSON.stringify(data));return true}catch(e){return false}}
+function render(){
+var rows=games.filter(function(a){return filter==="all"||a[0]===filter}),matrix=document.getElementById("matrix");matrix.replaceChildren();
+var summary={confirmed:0,possible:0,unknown:0};games.forEach(function(game){regions.forEach(function(region){var a=label(data[code(region,game[0],game[1])]);if(a.order===2)summary.confirmed++;else if(a.order===1)summary.possible++;else summary.unknown++;})});
+rows.forEach(function(game){var tr=document.createElement("tr");var td=document.createElement("td");var name=document.createElement("div");name.className="mode-name";name.textContent=game[0];var sub=document.createElement("div");sub.className="mode-group";sub.textContent=game[1];td.append(name,sub);tr.append(td);
+regions.forEach(function(region){var cell=document.createElement("td"),obs=data[code(region,game[0],game[1])],status=label(obs),button=document.createElement("button"),pill=document.createElement("span");button.type="button";button.title="Registar observação de "+game[0]+" "+game[1]+" em "+region;pill.className="pill "+status.cls;pill.textContent=status.text;button.append(pill);button.addEventListener("click",function(){document.getElementById("region").value=region;document.getElementById("mode").value=ref(game[0],game[1]);document.getElementById("observation").scrollIntoView({behavior:"smooth",block:"center"});});cell.append(button);tr.append(cell);});
+matrix.append(tr);});
+Object.keys(summary).forEach(function(k){document.getElementById(k).textContent=summary[k]});var dates=Object.values(data).filter(function(r){return r&&typeof r.at==="number"}).map(function(r){return r.at});var newest=dates.length?Math.max.apply(null,dates):0;document.getElementById("updated").textContent=newest?"Última observação local: "+new Date(newest).toLocaleString("pt-PT"):"Sem observações guardadas";
+}
+var modeSelect=document.getElementById("mode");games.forEach(function(g){var o=document.createElement("option");o.value=ref(g[0],g[1]);o.textContent=g[0]+" · "+g[1];modeSelect.append(o)});
+document.querySelectorAll("[data-filter]").forEach(function(b){b.addEventListener("click",function(){filter=b.dataset.filter;document.querySelectorAll("[data-filter]").forEach(function(b2){b2.setAttribute("aria-pressed",String(b2===b))});render()})});
+document.getElementById("report").addEventListener("submit",function(ev){ev.preventDefault();var region=document.getElementById("region").value,parts=document.getElementById("mode").value.split("|"),evidence=document.getElementById("evidence").value,raw=document.getElementById("count").value.trim(),count=raw===""?null:Number(raw),feedback=document.getElementById("feedback");
+if(raw!==""&&(!Number.isInteger(count)||count<0||count>999999)){feedback.textContent="Introduz uma contagem válida.";return}
+if(evidence==="population"&&count===null){feedback.textContent="Para avaliar a possibilidade de Touch, introduz o número de jogadores desse modo.";return}
+data[code(region,parts[0],parts[1])]={at:Date.now(),evidence:evidence,count:count};
+feedback.textContent=safeStore()?"Observação guardada neste navegador.":"Observação atualizada; o navegador não permitiu armazenamento permanente.";render();});
+document.getElementById("clear").addEventListener("click",function(){if(!confirm("Apagar as observações deste navegador?"))return;data={};safeStore();document.getElementById("feedback").textContent="Dados locais limpos.";render()});
+render();setInterval(render,60000);
+})();
+</script></body></html>
